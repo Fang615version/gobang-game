@@ -74,6 +74,24 @@ header h1 {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
+.player.active .stone {
+    box-shadow: 0 0 0 3px #4CAF50;
+}
+
+/* 键盘焦点样式 */
+#board:focus {
+    outline: 3px solid #4CAF50;
+    outline-offset: 4px;
+}
+
+/* 悔棋步数显示 */
+.undo-info {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 5px;
+    text-align: center;
+}
+
 .player-name {
     font-size: 16px;
     font-weight: 500;

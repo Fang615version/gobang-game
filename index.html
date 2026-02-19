@@ -12,30 +12,36 @@
             <h1>五子棋</h1>
         </header>
 
-        <main>
-            <div class="game-info">
+        <main role="main">
+            <div class="game-info" aria-label="游戏信息">
                 <div class="player-info">
-                    <div class="player black">
+                    <div class="player black active" id="player-black" aria-label="黑方玩家">
                         <span class="stone black-stone"></span>
                         <span class="player-name">黑方</span>
                     </div>
-                    <div class="player white">
+                    <div class="player white" id="player-white" aria-label="白方玩家">
                         <span class="stone white-stone"></span>
                         <span class="player-name">白方</span>
                     </div>
                 </div>
-                <div class="game-status">
+                <div class="game-status" id="game-status">
                     <span id="current-player">当前执棋：黑方</span>
                 </div>
             </div>
 
             <div class="game-board">
-                <canvas id="board" width="600" height="600"></canvas>
+                <canvas id="board"
+                        width="600"
+                        height="600"
+                        role="img"
+                        aria-label="五子棋棋盘，15x15格子"
+                        tabindex="0"
+                        aria-describedby="game-status"></canvas>
             </div>
 
             <div class="controls">
-                <button id="btn-restart" class="btn">重新开始</button>
-                <button id="btn-undo" class="btn">悔棋</button>
+                <button id="btn-restart" class="btn" aria-label="重新开始游戏">重新开始</button>
+                <button id="btn-undo" class="btn" aria-label="悔棋">悔棋</button>
             </div>
         </main>
 
@@ -44,11 +50,11 @@
         </footer>
     </div>
 
-    <div id="modal" class="modal hidden">
+    <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <div class="modal-content">
             <h2 id="modal-title">游戏结束</h2>
             <p id="modal-message">黑方获胜！</p>
-            <button id="modal-btn" class="btn">再来一局</button>
+            <button id="modal-btn" class="btn" aria-label="再来一局">再来一局</button>
         </div>
     </div>
 

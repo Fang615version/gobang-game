@@ -5,9 +5,9 @@
 
 // ==================== 游戏常量 ====================
 const BOARD_SIZE = 15;           // 棋盘大小 15x15
-const GRID_SIZE = 40;            // 每个格子大小
-const PADDING = 20;              // 棋盘边缘留白
-const STONE_RADIUS = 17;         // 棋子半径
+let GRID_SIZE = 40;               // 每个格子大小（动态调整）
+let PADDING = 20;                 // 棋盘边缘留白（动态调整）
+let STONE_RADIUS = 17;            // 棋子半径（动态调整）
 
 const BLACK = 1;                 // 黑棋
 const WHITE = 2;                 // 白棋
@@ -18,6 +18,8 @@ let board = [];                  // 棋盘二维数组
 let currentPlayer = BLACK;       // 当前执棋方
 let gameOver = false;            // 游戏是否结束
 let moveHistory = [];            // 落子历史记录
+let cursorPos = { row: 7, col: 7 }; // 键盘光标位置
+let isResizing = false;          // 是否正在调整大小
 
 // ==================== DOM 元素 ====================
 const canvas = document.getElementById('board');
@@ -35,39 +37,77 @@ const modalBtn = document.getElementById('modal-btn');
  * 初始化游戏
  */
 function initGame() {
-    // 初始化棋盘数组
-    board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(EMPTY));
+    try {
+        // 初始化棋盘数组
+        board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(EMPTY));
 
-    // 重置游戏状态
-    currentPlayer = BLACK;
-    gameOver = false;
-    moveHistory = [];
+        // 重置游戏状态
+        currentPlayer = BLACK;
+        gameOver = false;
+        moveHistory = [];
+        cursorPos = { row: 7, col: 7 };
 
-    // 绘制棋盘
-    drawBoard();
+        // 绘制棋盘
+        drawBoard();
 
-    // 更新界面
-    updateUI();
+        // 更新界面
+        updateUI();
+    } catch (error) {
+        console.error('游戏初始化失败:', error);
+        showErrorModal('游戏初始化失败，请刷新页面重试');
+    }
+}
+
+/**
+ * 显示错误弹窗
+ * @param {string} message - 错误信息
+ */
+function showErrorModal(message) {
+    modalTitle.textContent = '错误';
+    modalMessage.textContent = message;
+    modal.classList.remove('hidden');
 }
 
 /**
  * 绘制棋盘
  */
 function drawBoard() {
-    // 清空画布
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    try {
+        // 清空画布
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // 绘制木纹背景
-    drawWoodBackground();
+        // 绘制木纹背景
+        drawWoodBackground();
 
-    // 绘制网格线
-    drawGrid();
+        // 绘制网格线
+        drawGrid();
 
-    // 绘制棋子
-    drawStones();
+        // 绘制棋子
+        drawStones();
 
-    // 绘制最后一步的标记
-    drawLastMoveMarker();
+        // 绘制最后一步的标记
+        drawLastMoveMarker();
+
+        // 绘制键盘光标
+        drawCursor();
+    } catch (error) {
+        console.error('绘制棋盘失败:', error);
+    }
+}
+
+/**
+ * 绘制键盘光标位置
+ */
+function drawCursor() {
+    const x = PADDING + cursorPos.col * GRID_SIZE;
+    const y = PADDING + cursorPos.row * GRID_SIZE;
+
+    ctx.strokeStyle = '#4CAF50';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([5, 3]);
+
+    ctx.strokeRect(x - STONE_RADIUS, y - STONE_RADIUS, STONE_RADIUS * 2, STONE_RADIUS * 2);
+    ctx.setLineDash([]);
 }
 
 /**
@@ -219,32 +259,79 @@ function drawLastMoveMarker() {
 function handleBoardClick(event) {
     if (gameOver) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    try {
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
 
-    // 考虑 Canvas 的缩放比例
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
+        // 考虑 Canvas 的缩放比例
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
 
-    const actualX = x * scaleX;
-    const actualY = y * scaleY;
+        const actualX = x * scaleX;
+        const actualY = y * scaleY;
 
-    // 计算最近的交叉点
-    const col = Math.round((actualX - PADDING) / GRID_SIZE);
-    const row = Math.round((actualY - PADDING) / GRID_SIZE);
+        // 计算最近的交叉点
+        const col = Math.round((actualX - PADDING) / GRID_SIZE);
+        const row = Math.round((actualY - PADDING) / GRID_SIZE);
 
-    // 验证落子位置
-    if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE) {
-        return;
+        // 验证落子位置
+        if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE) {
+            return;
+        }
+
+        if (board[row][col] !== EMPTY) {
+            return;
+        }
+
+        // 更新光标位置
+        cursorPos = { row, col };
+
+        // 落子
+        placePiece(row, col);
+    } catch (error) {
+        console.error('处理棋盘点击失败:', error);
     }
+}
 
-    if (board[row][col] !== EMPTY) {
-        return;
+/**
+ * 处理键盘导航
+ * @param {KeyboardEvent} event - 键盘事件
+ */
+function handleKeyboard(event) {
+    if (gameOver) return;
+
+    // 方向键移动光标
+    switch (event.key) {
+        case 'ArrowUp':
+            event.preventDefault();
+            cursorPos.row = Math.max(0, cursorPos.row - 1);
+            drawBoard();
+            break;
+        case 'ArrowDown':
+            event.preventDefault();
+            cursorPos.row = Math.min(BOARD_SIZE - 1, cursorPos.row + 1);
+            drawBoard();
+            break;
+        case 'ArrowLeft':
+            event.preventDefault();
+            cursorPos.col = Math.max(0, cursorPos.col - 1);
+            drawBoard();
+            break;
+        case 'ArrowRight':
+            event.preventDefault();
+            cursorPos.col = Math.min(BOARD_SIZE - 1, cursorPos.col + 1);
+            drawBoard();
+            break;
+        case ' ':
+        case 'Enter':
+            event.preventDefault();
+            // 在光标位置落子
+            if (board[cursorPos.row][cursorPos.col] === EMPTY) {
+                placePiece(cursorPos.row, cursorPos.col);
+            }
+            break;
     }
-
-    // 落子
-    placePiece(row, col);
 }
 
 /**
@@ -253,21 +340,45 @@ function handleBoardClick(event) {
  * @param {number} col - 列索引
  */
 function placePiece(row, col) {
-    board[row][col] = currentPlayer;
-    moveHistory.push({ row, col, player: currentPlayer });
+    try {
+        // 验证位置有效性
+        if (!isValidPosition(row, col)) {
+            console.warn('无效的落子位置:', row, col);
+            return;
+        }
 
-    drawBoard();
+        if (board[row][col] !== EMPTY) {
+            return;
+        }
 
-    // 检查胜负
-    if (checkWin(row, col)) {
-        gameOver = true;
-        showWinModal(currentPlayer);
-        return;
+        board[row][col] = currentPlayer;
+        moveHistory.push({ row, col, player: currentPlayer });
+
+        drawBoard();
+
+        // 检查胜负
+        if (checkWin(row, col)) {
+            gameOver = true;
+            showWinModal(currentPlayer);
+            return;
+        }
+
+        // 切换执棋方
+        currentPlayer = currentPlayer === BLACK ? WHITE : BLACK;
+        updateUI();
+    } catch (error) {
+        console.error('落子失败:', error);
     }
+}
 
-    // 切换执棋方
-    currentPlayer = currentPlayer === BLACK ? WHITE : BLACK;
-    updateUI();
+/**
+ * 验证位置是否有效
+ * @param {number} row - 行索引
+ * @param {number} col - 列索引
+ * @returns {boolean} 是否有效
+ */
+function isValidPosition(row, col) {
+    return row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE;
 }
 
 /**
@@ -324,33 +435,47 @@ function undoMove() {
         return;
     }
 
-    const lastMove = moveHistory.pop();
-    board[lastMove.row][lastMove.col] = EMPTY;
-    currentPlayer = lastMove.player;
+    try {
+        const lastMove = moveHistory.pop();
+        if (lastMove && isValidPosition(lastMove.row, lastMove.col)) {
+            board[lastMove.row][lastMove.col] = EMPTY;
+            currentPlayer = lastMove.player;
+        }
 
-    drawBoard();
-    updateUI();
+        drawBoard();
+        updateUI();
+    } catch (error) {
+        console.error('悔棋失败:', error);
+    }
 }
 
 /**
  * 更新界面显示
  */
 function updateUI() {
-    // 更新当前执棋方显示
-    currentPlayerEl.textContent = `当前执棋：${currentPlayer === BLACK ? '黑方' : '白方'}`;
+    try {
+        // 更新当前执棋方显示
+        const playerName = currentPlayer === BLACK ? '黑方' : '白方';
+        currentPlayerEl.textContent = `当前执棋：${playerName}`;
 
-    // 更新玩家信息的高亮状态
-    const players = document.querySelectorAll('.player');
-    players.forEach((player, index) => {
-        if ((index === 0 && currentPlayer === BLACK) || (index === 1 && currentPlayer === WHITE)) {
-            player.classList.add('active');
+        // 更新玩家信息的高亮状态
+        const blackPlayer = document.getElementById('player-black');
+        const whitePlayer = document.getElementById('player-white');
+
+        if (currentPlayer === BLACK) {
+            blackPlayer.classList.add('active');
+            whitePlayer.classList.remove('active');
         } else {
-            player.classList.remove('active');
+            whitePlayer.classList.add('active');
+            blackPlayer.classList.remove('active');
         }
-    });
 
-    // 更新按钮状态
-    btnUndo.disabled = moveHistory.length === 0 || gameOver;
+        // 更新按钮状态 - 允许连续悔棋
+        btnUndo.disabled = moveHistory.length === 0;
+        btnUndo.textContent = `悔棋 (${moveHistory.length})`;
+    } catch (error) {
+        console.error('更新界面失败:', error);
+    }
 }
 
 /**
@@ -358,23 +483,38 @@ function updateUI() {
  * @param {number} winner - 获胜方
  */
 function showWinModal(winner) {
-    const winnerName = winner === BLACK ? '黑方' : '白方';
-    modalTitle.textContent = '游戏结束';
-    modalMessage.textContent = `${winnerName}获胜！`;
-    modal.classList.remove('hidden');
+    try {
+        const winnerName = winner === BLACK ? '黑方' : '白方';
+        modalTitle.textContent = '游戏结束';
+        modalMessage.textContent = `${winnerName}获胜！`;
+        modal.classList.remove('hidden');
+        // 将焦点移到弹窗按钮
+        setTimeout(() => modalBtn.focus(), 100);
+    } catch (error) {
+        console.error('显示获胜弹窗失败:', error);
+    }
 }
 
 /**
  * 隐藏弹窗
  */
 function hideModal() {
-    modal.classList.add('hidden');
+    try {
+        modal.classList.add('hidden');
+        // 将焦点移回棋盘
+        canvas.focus();
+    } catch (error) {
+        console.error('隐藏弹窗失败:', error);
+    }
 }
 
 // ==================== 事件监听 ====================
 
 // 棋盘点击事件
 canvas.addEventListener('click', handleBoardClick);
+
+// 键盘导航事件
+canvas.addEventListener('keydown', handleKeyboard);
 
 // 重新开始按钮
 btnRestart.addEventListener('click', () => {
@@ -390,5 +530,48 @@ modalBtn.addEventListener('click', () => {
     initGame();
 });
 
+// 响应式 Canvas 大小调整
+window.addEventListener('resize', handleResize);
+
+/**
+ * 处理窗口大小变化
+ */
+function handleResize() {
+    if (isResizing) return;
+    isResizing = true;
+
+    try {
+        const container = document.querySelector('.game-board');
+        const maxSize = Math.min(window.innerWidth - 40, window.innerHeight - 300, 600);
+        const minSize = 320;
+        const newSize = Math.max(minSize, maxSize);
+
+        // 动态计算 PADDING（保持边缘留白比例）
+        PADDING = Math.round(newSize * 0.033);
+
+        // 重新计算网格大小
+        GRID_SIZE = (newSize - PADDING * 2) / (BOARD_SIZE - 1);
+        STONE_RADIUS = GRID_SIZE * 0.425;
+
+        // 更新 Canvas 尺寸
+        canvas.width = newSize;
+        canvas.height = newSize;
+
+        // 重绘棋盘
+        drawBoard();
+    } catch (error) {
+        console.error('调整大小失败:', error);
+    } finally {
+        // 延迟重置标志，防止频繁触发
+        setTimeout(() => {
+            isResizing = false;
+        }, 100);
+    }
+}
+
 // ==================== 启动游戏 ====================
-initGame();
+// 页面加载完成后初始化游戏并调整大小
+window.addEventListener('DOMContentLoaded', () => {
+    handleResize();
+    initGame();
+});
