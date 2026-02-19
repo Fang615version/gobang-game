@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>五子棋 - 网页版</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>五子棋</h1>
+        </header>
+
+        <main>
+            <div class="game-info">
+                <div class="player-info">
+                    <div class="player black">
+                        <span class="stone black-stone"></span>
+                        <span class="player-name">黑方</span>
+                    </div>
+                    <div class="player white">
+                        <span class="stone white-stone"></span>
+                        <span class="player-name">白方</span>
+                    </div>
+                </div>
+                <div class="game-status">
+                    <span id="current-player">当前执棋：黑方</span>
+                </div>
+            </div>
+
+            <div class="game-board">
+                <canvas id="board" width="600" height="600"></canvas>
+            </div>
+
+            <div class="controls">
+                <button id="btn-restart" class="btn">重新开始</button>
+                <button id="btn-undo" class="btn">悔棋</button>
+            </div>
+        </main>
+
+        <footer>
+            <p>五子棋网页版 - 双人对战</p>
+        </footer>
+    </div>
+
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="modal-title">游戏结束</h2>
+            <p id="modal-message">黑方获胜！</p>
+            <button id="modal-btn" class="btn">再来一局</button>
+        </div>
+    </div>
+
+    <script src="js/game.js"></script>
+</body>
+</html>

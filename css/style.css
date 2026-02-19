@@ -1,0 +1,255 @@
+/* ==================== 全局样式 ==================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-color: #f0f0f0;
+    --board-bg: #DEB887;
+    --line-color: #333333;
+    --black-stone: #000000;
+    --white-stone: #FFFFFF;
+    --btn-primary: #4CAF50;
+    --btn-hover: #45a049;
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --modal-bg: rgba(0, 0, 0, 0.8);
+}
+
+body {
+    font-family: 'Microsoft YaHei', Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ==================== 容器布局 ==================== */
+.container {
+    width: 100%;
+    max-width: 800px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* ==================== 头部样式 ==================== */
+header h1 {
+    font-size: 32px;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+}
+
+/* ==================== 游戏信息区域 ==================== */
+.game-info {
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 20px;
+}
+
+.player-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.player {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.player.active {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.player-name {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.stone {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.black-stone {
+    background-color: var(--black-stone);
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.white-stone {
+    background-color: var(--white-stone);
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.game-status {
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* ==================== 棋盘区域 ==================== */
+.game-board {
+    margin-bottom: 20px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+#board {
+    display: block;
+    cursor: pointer;
+    background-color: var(--board-bg);
+}
+
+/* ==================== 控制按钮区域 ==================== */
+.controls {
+    display: flex;
+    gap: 15px;
+}
+
+.btn {
+    height: 40px;
+    min-width: 100px;
+    padding: 0 20px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #fff;
+    background-color: var(--btn-primary);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+}
+
+.btn:hover {
+    background-color: var(--btn-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ==================== 页脚样式 ==================== */
+footer {
+    margin-top: 30px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* ==================== 弹窗样式 ==================== */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--modal-bg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    transition: opacity 0.3s;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background-color: #fff;
+    padding: 30px 40px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-content h2 {
+    font-size: 24px;
+    margin-bottom: 15px;
+    color: var(--text-primary);
+}
+
+.modal-content p {
+    font-size: 18px;
+    margin-bottom: 25px;
+    color: var(--text-secondary);
+}
+
+/* ==================== 响应式设计 ==================== */
+@media (max-width: 640px) {
+    .container {
+        padding: 10px;
+    }
+
+    header h1 {
+        font-size: 24px;
+    }
+
+    .player-info {
+        flex-direction: row;
+        gap: 10px;
+    }
+
+    .player {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+
+    .game-status {
+        font-size: 16px;
+    }
+
+    #board {
+        width: 100%;
+        height: auto;
+    }
+
+    .controls {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn {
+        width: 100%;
+    }
+}
